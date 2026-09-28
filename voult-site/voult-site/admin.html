@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | VOULT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/voult-icon-v2.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{ background:var(--dim, #f1efe9); }
+  .admin-topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px var(--edge);
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  .admin-wrap{ max-width:1100px; margin:0 auto; padding:0 var(--edge) 80px; }
+  .admin-banner{
+    margin:28px 0; padding:16px 18px;
+    background:#fff7e6; border:1px solid #e8c27a; border-radius:4px;
+    font-size:13.5px; line-height:1.6; color:#5c4a1a;
+  }
+  .admin-banner b{ color:#3d3011; }
+  .admin-banner ol{ margin:8px 0 0; padding-left:20px; }
+  .admin-toolbar{ display:flex; gap:12px; flex-wrap:wrap; margin:24px 0; }
+  .admin-table{ width:100%; border-collapse:collapse; background:var(--paper); border:1px solid var(--line); font-size:14px; }
+  .admin-table th, .admin-table td{ text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .admin-table th{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--steel); background:var(--dim); }
+  .admin-table tr:last-child td{ border-bottom:none; }
+  .admin-thumb{ width:56px; height:40px; object-fit:cover; border-radius:2px; background:var(--dim); display:block; }
+  .pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; background:var(--dim); color:var(--ink-70); }
+  .pill.wide{ background:var(--coral); color:#fff; }
+  .row-actions{ display:flex; gap:8px; }
+  .row-actions button{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; background:none; border:1px solid var(--line-strong); border-radius:3px; padding:5px 10px; cursor:pointer; }
+  .row-actions button:hover{ border-color:var(--coral); color:var(--coral); }
+  .row-actions button.danger:hover{ border-color:#b3261e; color:#b3261e; }
+  #login-gate{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card{ width:100%; max-width:360px; background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:36px 30px; }
+  .login-card .field{ margin-top:18px; }
+  .admin-imgrow{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:10px; padding-bottom:14px; border-bottom:1px dashed var(--line); }
+  @media (max-width:600px){ .admin-imgrow{ grid-template-columns:1fr; } }
+  .admin-imgrow .field{ margin-top:0; }
+  .admin-imgrow img.preview{ max-width:100%; max-height:90px; margin-top:6px; border-radius:2px; display:none; }
+  .file-btn{ font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; background:var(--dim); border:1px solid var(--line-strong); border-radius:3px; padding:6px 10px; cursor:pointer; display:inline-block; margin-top:6px; }
+  .hidden{ display:none !important; }
+  #toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:4px; font-size:13.5px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:200; }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
+  .admin-modal-body{ display:flex; flex-direction:column; gap:14px; }
+  .check-row{ display:flex; align-items:center; gap:8px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="login-gate">
+  <form class="login-card" id="login-form">
+    <a href="index.html" class="brand" style="margin-bottom:6px;">
+      <img src="assets/voult-icon-v2.png" alt="VOULT" style="width:30px;height:30px;border-radius:3px;">
+      <span class="brand-word" style="font-size:19px;">VOULT</span>
+    </a>
+    <p style="color:var(--steel); font-size:13px; margin-top:2px;">Admin — Projects</p>
+    <div class="field">
+      <label for="admin-password">Password</label>
+      <input type="password" id="admin-password" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn btn-coral" style="margin-top:20px; width:100%; justify-content:center;">Log in</button>
+    <p id="login-error" style="color:#b3261e; font-size:12.5px; margin-top:12px; display:none;">Wrong password — try again.</p>
+    <p style="font-size:11.5px; color:var(--steel); margin-top:20px; line-height:1.6;">This is a simple client-side lock, not real security — anyone who reads the page source can find the password. Good enough to keep this page off casual visitors' radar, not to protect sensitive data.</p>
+  </form>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard" class="hidden">
+  <div class="admin-topbar">
+    <a href="index.html" class="brand">
+      <img src="assets/voult-icon-v2.png" alt="VOULT" style="width:30px;height:30px;border-radius:3px;">
+      <span class="brand-word" style="font-size:19px;">VOULT</span>
+      <span class="brand-tag" style="display:inline;">Admin</span>
+    </a>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="projects.html" target="_blank" class="row-actions"><button type="button">View site ↗</button></a>
+      <button type="button" id="logout-btn" class="row-actions" style="border:none; background:none;"><span style="font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--steel); cursor:pointer;">Log out</span></button>
+    </div>
+  </div>
+
+  <div class="admin-wrap">
+    <div class="admin-banner">
+      <b>How this works.</b> Every change you make below is saved instantly to this browser, so you can open
+      <a href="projects.html" target="_blank">the Projects page</a> right away and see it — no download needed just to preview.
+      That preview is <b>only visible on this device</b>, though. To make changes visible to actual visitors:
+      <ol>
+        <li>Click <b>"Download projects-data.js"</b> once you're happy with everything.</li>
+        <li>Replace the file at <code>assets/data/projects-data.js</code> in your site folder with the one you downloaded.</li>
+        <li>Re-upload the site to your host.</li>
+        <li>Come back here and click <b>"Mark as published"</b> so this browser stops showing you the old draft preview.</li>
+      </ol>
+      New photos you upload below are embedded directly into the file (no separate image upload needed) — just keep them reasonably small (under ~500KB each) so the file doesn't get huge.
+    </div>
+
+    <p id="draft-status" style="font-size:12.5px; color:var(--steel); margin:-8px 0 18px;"></p>
+
+    <div class="admin-toolbar">
+      <button type="button" id="add-project-btn" class="btn btn-coral">+ Add project</button>
+      <button type="button" id="download-btn" class="btn" style="background:var(--ink); color:#fff; border-color:var(--ink);">Download projects-data.js</button>
+      <button type="button" id="publish-btn" class="row-actions" style="border:1px solid var(--line-strong); border-radius:3px; padding:0 16px; background:none; font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase; cursor:pointer;">Mark as published</button>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr><th></th><th>Name</th><th>Section</th><th>Layout</th><th>Tag</th><th></th></tr>
+      </thead>
+      <tbody id="project-rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ ADD / EDIT MODAL ============ -->
+<div class="svc-modal" id="project-modal" aria-hidden="true">
+  <div class="svc-modal-backdrop" data-modal-close></div>
+  <div class="svc-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="max-height:92vh;">
+    <div class="svc-modal-top">
+      <div class="eyebrow svc-modal-eyebrow" id="modal-title">Add project</div>
+      <button class="svc-modal-close" type="button" data-modal-close aria-label="Close"><span></span><span></span></button>
+    </div>
+    <div class="svc-modal-scroll">
+      <form id="project-form" class="admin-modal-body">
+        <input type="hidden" id="f-id">
+        <div class="field">
+          <label for="f-name">Project name</label>
+          <input type="text" id="f-name" required>
+        </div>
+        <div class="admin-imgrow" style="grid-template-columns:1fr 1fr;">
+          <div class="field">
+            <label for="f-location">Location</label>
+            <input type="text" id="f-location" placeholder="e.g. Riyadh, KSA" required>
+          </div>
+          <div class="field">
+            <label for="f-role">Role</label>
+            <input type="text" id="f-role" placeholder="e.g. BIM Coordination" required>
+          </div>
+        </div>
+        <div class="admin-imgrow" style="grid-template-columns:1fr 1fr;">
+          <div class="field">
+            <label for="f-tag">Corner tag</label>
+            <input type="text" id="f-tag" placeholder="e.g. Delivering">
+          </div>
+          <div class="field">
+            <label for="f-group">Section</label>
+            <select id="f-group">
+              <option value="main">Selected work</option>
+              <option value="founders">Founder's Experience</option>
+            </select>
+          </div>
+        </div>
+        <label class="check-row"><input type="checkbox" id="f-wide"> Feature as large hero-style card</label>
+        <div class="field">
+          <label for="f-description">Description <span style="color:var(--steel);">(only shown on featured cards)</span></label>
+          <textarea id="f-description" rows="3"></textarea>
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:8px;">Image 1</label>
+          <div class="admin-imgrow">
+            <div class="field">
+              <label for="f-img1-src">Image URL / filename</label>
+              <input type="text" id="f-img1-src" placeholder="assets/projects/your-file.jpg">
+              <label class="file-btn">Upload from computer<input type="file" id="f-img1-file" accept="image/*" style="display:none;"></label>
+              <img class="preview" id="f-img1-preview">
+            </div>
+            <div class="field">
+              <label for="f-img1-alt">Alt text (for accessibility/SEO)</label>
+              <input type="text" id="f-img1-alt" placeholder="Describe what's in the photo">
+            </div>
+          </div>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:8px;">Image 2 <span style="color:var(--steel);">(optional — adds swipe arrows)</span></label>
+          <div class="admin-imgrow" style="border-bottom:none; margin-bottom:0;">
+            <div class="field">
+              <label for="f-img2-src">Image URL / filename</label>
+              <input type="text" id="f-img2-src" placeholder="assets/projects/your-file-2.jpg">
+              <label class="file-btn">Upload from computer<input type="file" id="f-img2-file" accept="image/*" style="display:none;"></label>
+              <img class="preview" id="f-img2-preview">
+            </div>
+            <div class="field">
+              <label for="f-img2-alt">Alt text</label>
+              <input type="text" id="f-img2-alt" placeholder="Describe what's in the photo">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="svc-modal-foot">
+      <button type="button" class="btn btn-coral" id="save-project-btn">Save project</button>
+      <button type="button" class="row-actions" data-modal-close style="border:1px solid var(--line-strong); border-radius:3px; padding:9px 16px; background:none; font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="assets/data/projects-data.js"></script>
+<script>
+(function(){
+  // ---- Change this password before publishing the site ----
+  const ADMIN_PASSWORD = "voult2026";
+  // -----------------------------------------------------------
+
+  const loginGate = document.getElementById('login-gate');
+  const dashboard = document.getElementById('dashboard');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+
+  function showDashboard(){
+    loginGate.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    renderTable();
+    updateDraftStatus();
+  }
+
+  if (sessionStorage.getItem('voult_admin_ok') === '1') showDashboard();
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = document.getElementById('admin-password').value;
+    if (val === ADMIN_PASSWORD) {
+      sessionStorage.setItem('voult_admin_ok', '1');
+      loginError.style.display = 'none';
+      showDashboard();
+    } else {
+      loginError.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('voult_admin_ok');
+    location.reload();
+  });
+
+  // ---- Project data (in-memory working copy) ----
+  // Starts from a saved draft in this browser if one exists, else from the published file.
+  const DRAFT_KEY = 'voult_projects_draft';
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { draft = null; }
+  let projects = draft || JSON.parse(JSON.stringify(window.VOULT_PROJECTS || []));
+
+  function saveDraft(){
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(projects)); } catch (e) { /* storage unavailable */ }
+    updateDraftStatus();
+  }
+
+  function updateDraftStatus(){
+    const el = document.getElementById('draft-status');
+    if (!el) return;
+    let stored = null;
+    try { stored = localStorage.getItem(DRAFT_KEY); } catch (e) {}
+    el.textContent = stored
+      ? '● Unpublished changes are saved in this browser and previewing live on the Projects page.'
+      : 'No unpublished changes — this matches the last downloaded file.';
+    el.style.color = stored ? 'var(--coral)' : 'var(--steel)';
+  }
+
+  document.getElementById('publish-btn').addEventListener('click', () => {
+    if (!confirm('Only click this after you\'ve downloaded the file, replaced assets/data/projects-data.js, and re-uploaded your site. Continue?')) return;
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    updateDraftStatus();
+    showToast('Marked as published. This browser will now show the published file again.');
+  });
+
+  function slugify(name){
+    let base = String(name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'project';
+    let id = base, n = 2;
+    while (projects.some(p => p.id === id)) { id = `${base}-${n++}`; }
+    return id;
+  }
+
+  function esc(str){
+    return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderTable(){
+    const tbody = document.getElementById('project-rows');
+    tbody.innerHTML = projects.map((p, i) => `
+      <tr>
+        <td><img class="admin-thumb" src="${esc((p.images && p.images[0] && p.images[0].src) || '')}" alt=""></td>
+        <td><b>${esc(p.name)}</b><br><span style="color:var(--steel); font-size:12px;">${esc(p.location)}</span></td>
+        <td>${p.group === 'founders' ? "Founder's Experience" : 'Selected work'}</td>
+        <td>${p.wide ? '<span class="pill wide">Featured</span>' : '<span class="pill">Standard</span>'}</td>
+        <td>${esc(p.tag || '—')}</td>
+        <td>
+          <div class="row-actions">
+            <button type="button" data-edit="${i}">Edit</button>
+            <button type="button" class="danger" data-delete="${i}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('') || `<tr><td colspan="6" style="text-align:center; color:var(--steel); padding:32px;">No projects yet — click "+ Add project" to create one.</td></tr>`;
+
+    tbody.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => openForm(parseInt(btn.dataset.edit, 10)));
+    });
+    tbody.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.delete, 10);
+        if (confirm(`Delete "${projects[idx].name}"? This is saved to your browser immediately.`)) {
+          projects.splice(idx, 1);
+          saveDraft();
+          renderTable();
+          showToast('Project deleted — visible on the Projects page in this browser now.');
+        }
+      });
+    });
+  }
+
+  // ---- Modal ----
+  const modal = document.getElementById('project-modal');
+  const form = document.getElementById('project-form');
+  let editingIndex = null;
+
+  function openForm(index){
+    editingIndex = (typeof index === 'number') ? index : null;
+    const p = editingIndex !== null ? projects[editingIndex] : null;
+    document.getElementById('modal-title').textContent = p ? 'Edit project' : 'Add project';
+    document.getElementById('f-id').value = p ? p.id : '';
+    document.getElementById('f-name').value = p ? p.name : '';
+    document.getElementById('f-location').value = p ? p.location : '';
+    document.getElementById('f-role').value = p ? p.role : '';
+    document.getElementById('f-tag').value = p ? (p.tag || '') : '';
+    document.getElementById('f-group').value = p ? p.group : 'main';
+    document.getElementById('f-wide').checked = p ? !!p.wide : false;
+    document.getElementById('f-description').value = p ? (p.description || '') : '';
+
+    const img1 = p && p.images && p.images[0];
+    const img2 = p && p.images && p.images[1];
+    document.getElementById('f-img1-src').value = img1 ? img1.src : '';
+    document.getElementById('f-img1-alt').value = img1 ? img1.alt : '';
+    document.getElementById('f-img2-src').value = img2 ? img2.src : '';
+    document.getElementById('f-img2-alt').value = img2 ? img2.alt : '';
+    updatePreview('f-img1-src', 'f-img1-preview');
+    updatePreview('f-img2-src', 'f-img2-preview');
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+
+  function closeForm(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+
+  modal.querySelectorAll('[data-modal-close]').forEach(el => el.addEventListener('click', closeForm));
+  document.getElementById('add-project-btn').addEventListener('click', () => openForm(null));
+
+  function updatePreview(srcId, imgId){
+    const src = document.getElementById(srcId).value.trim();
+    const img = document.getElementById(imgId);
+    if (src) { img.src = src; img.style.display = 'block'; }
+    else { img.style.display = 'none'; }
+  }
+
+  function wireImageUpload(fileId, srcId, imgId){
+    document.getElementById(fileId).addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById(srcId).value = reader.result;
+        updatePreview(srcId, imgId);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  wireImageUpload('f-img1-file', 'f-img1-src', 'f-img1-preview');
+  wireImageUpload('f-img2-file', 'f-img2-src', 'f-img2-preview');
+  document.getElementById('f-img1-src').addEventListener('input', () => updatePreview('f-img1-src', 'f-img1-preview'));
+  document.getElementById('f-img2-src').addEventListener('input', () => updatePreview('f-img2-src', 'f-img2-preview'));
+
+  document.getElementById('save-project-btn').addEventListener('click', () => {
+    if (!form.reportValidity()) return;
+
+    const name = document.getElementById('f-name').value.trim();
+    const images = [];
+    const img1src = document.getElementById('f-img1-src').value.trim();
+    const img2src = document.getElementById('f-img2-src').value.trim();
+    if (img1src) images.push({ src: img1src, alt: document.getElementById('f-img1-alt').value.trim() || name });
+    if (img2src) images.push({ src: img2src, alt: document.getElementById('f-img2-alt').value.trim() || name });
+
+    const data = {
+      id: document.getElementById('f-id').value || slugify(name),
+      group: document.getElementById('f-group').value,
+      wide: document.getElementById('f-wide').checked,
+      tag: document.getElementById('f-tag').value.trim(),
+      location: document.getElementById('f-location').value.trim(),
+      role: document.getElementById('f-role').value.trim(),
+      name: name,
+      description: document.getElementById('f-description').value.trim(),
+      images: images
+    };
+
+    if (editingIndex !== null) projects[editingIndex] = data;
+    else projects.push(data);
+
+    saveDraft();
+    renderTable();
+    closeForm();
+    showToast('Saved — check the Projects page in this browser, it\'s there already.');
+  });
+
+  // ---- Download updated data file ----
+  document.getElementById('download-btn').addEventListener('click', () => {
+    const header = `// VOULT — Projects data\n// Edited via admin.html. Each project renders as a .proj-card on projects.html.\n//\n// Fields:\n//   id          unique slug, lowercase-hyphenated\n//   group       "main" | "founders"\n//   wide        true = large 2-col hero-style card, false = standard grid card\n//   tag         short label shown on the image corner, e.g. "Delivering"\n//   location    e.g. "Riyadh, KSA"\n//   role        e.g. "BIM Coordination"\n//   name        project title\n//   description only shown when wide is true\n//   images      array of { src, alt } — 1 or 2 images (2 shows swipe arrows + dots)\n\n`;
+    const body = `window.VOULT_PROJECTS = ${JSON.stringify(projects, null, 2)};\n`;
+    const blob = new Blob([header + body], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'projects-data.js';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Downloaded — replace assets/data/projects-data.js with this file, then re-upload your site.');
+  });
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 4200);
+  }
+})();
+</script>
+</body>
+</html>
